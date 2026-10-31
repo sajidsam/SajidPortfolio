@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 
 interface PanelItem {
   n: string;
@@ -116,55 +117,71 @@ const certs: PanelItem[] = [
 ];
 
 export default function Home() {
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [panelData, setPanelData] = useState<PanelItem | null>(null);
+  const [lightsOn, setLightsOn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mode, setMode] = useState<"w" | "c">("w");
+  const [selectedItem, setSelectedItem] = useState<PanelItem | null>(null);
+  const [navLt, setNavLt] = useState(false);
 
   const deckRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
-  const show = (item: PanelItem) => {
-    setPanelData(item);
-    setPanelOpen(true);
-  };
+  // Dynamic light/dark tone switching for liquid glass navbar on scroll
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          ticking = false;
+          if (!navRef.current) return;
+          const y = navRef.current.getBoundingClientRect().top + 28;
+          const lightEls = Array.from(document.querySelectorAll(".light, .awards"));
+          const isOverLight = lightEls.some((el) => {
+            const rect = el.getBoundingClientRect();
+            return rect.top <= y && rect.bottom >= y;
+          });
+          setNavLt(isOverLight);
+        });
+        ticking = true;
+      }
+    };
 
-  const closePanel = () => {
-    setPanelOpen(false);
-  };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
 
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close slide-over panel on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setPanelOpen(false);
-        setMenuOpen(false);
+        setSelectedItem(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleDeckPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const deck = deckRef.current;
-    if (!deck) return;
-    const r = deck.getBoundingClientRect();
+  // 3D Tilt handler for bookshelf deck
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!deckRef.current) return;
+    const r = deckRef.current.getBoundingClientRect();
     const a = (e.clientX - r.left) / r.width - 0.5;
     const b = (e.clientY - r.top) / r.height - 0.5;
-    deck.style.setProperty("--ry", `${-10 + a * 26}deg`);
-    deck.style.setProperty("--rx", `${-b * 10}deg`);
+    deckRef.current.style.setProperty("--ry", `${-10 + a * 26}deg`);
+    deckRef.current.style.setProperty("--rx", `${-b * 10}deg`);
   };
 
-  const handleDeckPointerLeave = () => {
-    const deck = deckRef.current;
-    if (!deck) return;
-    deck.style.removeProperty("--ry");
-    deck.style.removeProperty("--rx");
+  const handlePointerLeave = () => {
+    if (!deckRef.current) return;
+    deckRef.current.style.removeProperty("--ry");
+    deckRef.current.style.removeProperty("--rx");
   };
-
-  const currentList = mode === "w" ? wins : certs;
 
   return (
     <>
-      {/* SVG Definitions */}
+      {/* SVG Definitions for 3D Trophy Room */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
           <linearGradient id="g" x1="0" x2="1">
@@ -175,21 +192,11 @@ export default function Home() {
           <symbol id="base" viewBox="0 0 100 140">
             <path d="M44 96h12v14H44z" fill="url(#g)" />
             <path d="M28 110h44l5 10H23z" fill="#a57c5b" />
-            <rect
-              x="18"
-              y="120"
-              width="64"
-              height="20"
-              fill="#2a1c14"
-              stroke="#a57c5b"
-            />
+            <rect x="18" y="120" width="64" height="20" fill="#2a1c14" stroke="#a57c5b" />
           </symbol>
           <symbol id="cup" viewBox="0 0 100 140">
             <use href="#base" />
-            <path
-              d="M26 10h48v30c0 24-12 38-24 40-12-2-24-16-24-40z"
-              fill="url(#g)"
-            />
+            <path d="M26 10h48v30c0 24-12 38-24 40-12-2-24-16-24-40z" fill="url(#g)" />
             <path
               d="M26 18H10c0 18 8 26 20 28M74 18h16c0 18-8 26-20 28"
               fill="none"
@@ -199,20 +206,12 @@ export default function Home() {
           </symbol>
           <symbol id="star" viewBox="0 0 100 140">
             <use href="#base" />
-            <path
-              d="M50 8l11 24 26 3-19 18 5 26-23-13-23 13 5-26-19-18 26-3z"
-              fill="url(#g)"
-            />
+            <path d="M50 8l11 24 26 3-19 18 5 26-23-13-23 13 5-26-19-18 26-3z" fill="url(#g)" />
           </symbol>
           <symbol id="orb" viewBox="0 0 100 140">
             <use href="#base" />
             <circle cx="50" cy="52" r="40" fill="url(#g)" />
-            <path
-              d="M10 52h80M50 12c-22 22-22 58 0 80M50 12c22 22 22 58 0 80"
-              fill="none"
-              stroke="#5a3d2b"
-              strokeWidth="2"
-            />
+            <path d="M10 52h80M50 12c-22 22-22 58 0 80M50 12c22 22 22 58 0 80" fill="none" stroke="#5a3d2b" strokeWidth="2" />
           </symbol>
           <symbol id="obe" viewBox="0 0 100 140">
             <use href="#base" />
@@ -221,114 +220,136 @@ export default function Home() {
         </defs>
       </svg>
 
-      {/* Navigation */}
-      <nav className="bar">
+      {/* Liquid Glass Navbar */}
+      <nav ref={navRef} className={`bar ${navLt ? "lt" : ""}`}>
         <div className="wrap">
-          <a
-            className="logo"
-            href="#top"
-            onClick={() => setMenuOpen(false)}
-          >
+          <a className="logo" href="#top">
             Sajidul Islam
           </a>
-
-          {/* Desktop links */}
           <div className="desktop-links">
             <a href="#about">About</a>
             <a href="#work">Work</a>
             <a href="#awards">Awards</a>
             <a href="#contact">Contact</a>
           </div>
-
-          {/* Mobile hamburger button */}
           <button
-            type="button"
             className="hamburger-btn"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle navigation menu"
-            aria-expanded={menuOpen}
           >
-            {menuOpen ? (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            ) : (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="4" y1="6" x2="20" y2="6" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <line x1="4" y1="18" x2="20" y2="18" />
-              </svg>
-            )}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
-
-        {/* Mobile menu drawer */}
-        {menuOpen && (
-          <div className="mobile-menu-drawer">
-            <a href="#about" onClick={() => setMenuOpen(false)}>
-              About
-            </a>
-            <a href="#work" onClick={() => setMenuOpen(false)}>
-              Work
-            </a>
-            <a href="#awards" onClick={() => setMenuOpen(false)}>
-              Awards
-            </a>
-            <a href="#contact" onClick={() => setMenuOpen(false)}>
-              Contact
-            </a>
-          </div>
-        )}
       </nav>
 
-      {/* Hero */}
-      <header className="hero" id="top">
-        <div className="wrap">
-          <div className="eyebrow">Software Engineer · Dhaka</div>
-          <h1>I build software that holds up under pressure.</h1>
-          <p>Backends, clean interfaces, and the details nobody sees until they break.</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <a className="btn f" href="#work">
-              See my work
-            </a>
-            <a className="btn" href="#contact">
-              Get in touch
-            </a>
+      {/* Mobile Drawer Menu */}
+      {menuOpen && (
+        <div className="mobile-menu-drawer">
+          <a href="#about" onClick={() => setMenuOpen(false)}>
+            About
+          </a>
+          <a href="#work" onClick={() => setMenuOpen(false)}>
+            Work
+          </a>
+          <a href="#awards" onClick={() => setMenuOpen(false)}>
+            Awards
+          </a>
+          <a href="#contact" onClick={() => setMenuOpen(false)}>
+            Contact
+          </a>
+        </div>
+      )}
+
+      {/* Hero Room Scene with Interactive Lights & Retro TV Terminal */}
+      <header className={`hero ${lightsOn ? "on" : ""}`} id="top">
+        <h1 className="sr">Sajidul Islam, software engineer</h1>
+        <div className="hscene">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/hero-room.png"
+            width={1484}
+            height={1060}
+            alt="A modern home office where a developer works on a laptop, with a wall-mounted TV"
+          />
+          <div className="vig"></div>
+          <div className="tv">
+            <div className="tt">
+              ~/skills --list<b></b>
+            </div>
+            <div className="g">
+              <span>lang</span>
+              <i>TypeScript</i>
+              <i>Go</i>
+              <i>Rust</i>
+              <i>Python</i>
+            </div>
+            <div className="g">
+              <span>web</span>
+              <i>React</i>
+              <i>Next.js</i>
+              <i>Tailwind</i>
+            </div>
+            <div className="g">
+              <span>backend</span>
+              <i>Node.js</i>
+              <i>PostgreSQL</i>
+              <i>Redis</i>
+            </div>
+            <div className="g">
+              <span>cloud</span>
+              <i>AWS</i>
+              <i>Docker</i>
+              <i>K8s</i>
+            </div>
           </div>
+        </div>
+
+        {/* Interactive Light Bulb Switch */}
+        <button
+          className="bulb"
+          id="bulb"
+          onClick={() => setLightsOn(!lightsOn)}
+          aria-pressed={lightsOn}
+          aria-label={lightsOn ? "Turn the lights off" : "Turn the lights on"}
+        >
+          <span className="ic">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" />
+            </svg>
+          </span>
+          <span id="bl">{lightsOn ? "Lights off" : "Lights on"}</span>
+        </button>
+
+        {/* Hero Actions */}
+        <div className="wrap hcta">
+          <a className="btn f" href="#work">
+            See my work
+          </a>
+          <a className="btn" href="#contact">
+            Get in touch
+          </a>
         </div>
       </header>
 
-      {/* About */}
+      {/* About Section */}
       <section className="light" id="about">
         <div className="wrap">
           <h2 className="sec">About</h2>
           <div className="about">
             <div>
               <p>
-                I&apos;m a software engineer who likes turning messy problems into
-                small, fast, reliable systems. Replace this text with your own story:
-                where you studied, what you&apos;ve shipped, and what you want to
+                I&apos;m a software engineer who likes turning messy problems into small, fast, reliable systems.
+                Replace this text with your own story: where you studied, what you&apos;ve shipped, and what you want to
                 build next.
               </p>
-              <p>
-                Outside of work I contribute to open source and mentor students who
-                are just starting out.
-              </p>
+              <p>Outside of work I contribute to open source and mentor students who are just starting out.</p>
             </div>
             <div className="sk">
               <h3>Languages</h3>
@@ -342,26 +363,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Selected Work */}
+      {/* Selected Work Section */}
       <section className="light" id="work" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <h2 className="sec">Selected work</h2>
-          <a className="row" href="#">
+          <a className="row" href="#work">
             <b>Realtime Chat</b>
             <span>TypeScript, Go, Redis</span>
             <i>2025</i>
           </a>
-          <a className="row" href="#">
+          <a className="row" href="#work">
             <b>Payments API</b>
             <span>Node.js, PostgreSQL, Docker</span>
             <i>2023</i>
           </a>
-          <a className="row" href="#">
+          <a className="row" href="#work">
             <b>ML Pipeline</b>
             <span>Python, Kubernetes</span>
             <i>2023</i>
           </a>
-          <a className="row" href="#">
+          <a className="row" href="#work">
             <b>Design System</b>
             <span>React, Storybook</span>
             <i>2022</i>
@@ -369,33 +390,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Awards Shelf Section (Skeuomorphic 3D Bookshelf & Trophy Room) */}
+      {/* 3D Bookshelf Trophy Room Section */}
       <section className="awards" id="awards" aria-label="Awards">
         <div
           className="deck"
           id="deck"
           ref={deckRef}
-          onPointerMove={handleDeckPointerMove}
-          onPointerLeave={handleDeckPointerLeave}
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
         >
+          {/* Top Shelf */}
           <div className="top">
-            <i className="shelf" />
-
-            {/* Top Toolbar */}
+            <i className="shelf"></i>
             <div className="bar2">
               <span className="lg">TROPHY ROOM</span>
               <div className="tabs">
                 <button
-                  type="button"
                   className={mode === "w" ? "on" : ""}
                   onClick={() => setMode("w")}
+                  data-tab="w"
                 >
                   Trophies
                 </button>
                 <button
-                  type="button"
                   className={mode === "c" ? "on" : ""}
                   onClick={() => setMode("c")}
+                  data-tab="c"
                 >
                   Certificates
                 </button>
@@ -403,7 +423,6 @@ export default function Home() {
               <span className="cnt">6 wins · 4 certificates</span>
             </div>
 
-            {/* Intro Header */}
             <div className="intro">
               <h2>
                 Awards
@@ -414,13 +433,11 @@ export default function Home() {
               <div className="pill">✦ Click anything for the story</div>
             </div>
 
-            {/* Featured Trophy on Shelf */}
             <button
-              type="button"
               className="feat"
               id="feat"
+              onClick={() => setSelectedItem(feat)}
               aria-label="Hackathon 1st"
-              onClick={() => show(feat)}
             >
               <span className="badge">#1 · Hackathon winner</span>
               <div className="tilt">
@@ -430,14 +447,12 @@ export default function Home() {
               </div>
             </button>
 
-            {/* Side Cards on Shelf */}
             <div className="side">
               <div className="vl">Latest win</div>
               <button
-                type="button"
                 className="card a"
                 id="ca"
-                onClick={() => show(star)}
+                onClick={() => setSelectedItem(star)}
               >
                 <b>Open Source Star</b>
                 <small>2k GitHub stars</small>
@@ -445,38 +460,33 @@ export default function Home() {
                   <use href="#star" />
                 </svg>
               </button>
-
               <div className="vl">Last shipped</div>
               <button
-                type="button"
                 className="card b"
                 id="cb"
-                onClick={() => show(ship)}
+                onClick={() => setSelectedItem(ship)}
               >
                 <b>Analytics Dashboard</b>
                 <small>Next.js · ClickHouse</small>
                 <div className="disc">✦</div>
-                <div className="playback-bar" />
+                <div className="pbar"></div>
                 <span className="go2">↗</span>
               </button>
             </div>
           </div>
 
-          {/* Lower Shelf and Items */}
+          {/* Lower Shelf */}
           <div className="low" id="low">
-            <div className="vl">
-              {mode === "w" ? "Recent wins" : "Certificates"}
-            </div>
+            <div className="vl">{mode === "w" ? "Recent wins" : "Certificates"}</div>
             <div className="lowin">
               <div className="rack">
-                <i className="shelf" />
-                {currentList.map((item, idx) => (
+                <i className="shelf"></i>
+                {(mode === "w" ? wins : certs).map((item, idx) => (
                   <button
-                    key={idx}
-                    type="button"
+                    key={item.n}
                     className="mini"
+                    onClick={() => setSelectedItem(item)}
                     aria-label={item.n}
-                    onClick={() => show(item)}
                   >
                     {mode === "w" ? (
                       <svg viewBox="0 0 100 140">
@@ -485,11 +495,7 @@ export default function Home() {
                     ) : (
                       <div
                         className="cf"
-                        style={
-                          {
-                            "--r": `${idx % 2 ? 2 : -2}deg`,
-                          } as React.CSSProperties
-                        }
+                        style={{ ["--r" as string]: `${idx % 2 ? 2 : -2}deg` }}
                       >
                         {item.n}
                       </div>
@@ -497,10 +503,9 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-
               <div className="info">
-                {currentList.map((item, idx) => (
-                  <div key={idx} className="inf">
+                {(mode === "w" ? wins : certs).map((item) => (
+                  <div key={item.n} className="inf">
                     <div className="st" aria-hidden="true">
                       {"★".repeat(item.r || 5)}
                       {"☆".repeat(5 - (item.r || 5))}
@@ -510,9 +515,8 @@ export default function Home() {
                       {item.sub} · {item.y}
                     </small>
                     <button
-                      type="button"
                       className="ob"
-                      onClick={() => show(item)}
+                      onClick={() => setSelectedItem(item)}
                     >
                       View story
                     </button>
@@ -524,7 +528,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contact */}
+      {/* Contact Section */}
       <section id="contact" className="contact">
         <div className="wrap">
           <h2 className="sec">Let&apos;s work together</h2>
@@ -532,11 +536,21 @@ export default function Home() {
             you@example.com
           </a>
           <p>Open to full-time roles and interesting side projects.</p>
-          <div className="flex flex-wrap gap-3">
-            <a className="btn" href="#">
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <a
+              className="btn"
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               GitHub
             </a>
-            <a className="btn" href="#">
+            <a
+              className="btn"
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               LinkedIn
             </a>
           </div>
@@ -548,32 +562,31 @@ export default function Home() {
         <div className="wrap">© 2026 Sajidul Islam</div>
       </footer>
 
-      {/* Slide-over Detail Drawer Panel */}
+      {/* Detail Slide-over Story Panel */}
       <aside
-        className={`panel ${panelOpen ? "open" : ""}`}
+        className={`panel ${selectedItem ? "open" : ""}`}
         id="panel"
         aria-live="polite"
       >
         <button
-          type="button"
           className="x"
+          onClick={() => setSelectedItem(null)}
           aria-label="Close"
-          onClick={closePanel}
         >
           ×
         </button>
-        {panelData && (
+        {selectedItem && (
           <div id="pc">
-            <h3>{panelData.n}</h3>
-            <div className="yr">{panelData.y}</div>
-            <p>{panelData.d}</p>
+            <h3>{selectedItem.n}</h3>
+            <div className="yr">{selectedItem.y}</div>
+            <p>{selectedItem.d}</p>
             <div className="tags">
-              {panelData.t.map((tag, i) => (
-                <span key={i}>{tag}</span>
+              {selectedItem.t.map((tag) => (
+                <span key={tag}>{tag}</span>
               ))}
             </div>
-            {panelData.l && (
-              <a className="go" href={panelData.l}>
+            {selectedItem.l && (
+              <a className="go" href={selectedItem.l}>
                 View project
               </a>
             )}
