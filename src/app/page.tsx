@@ -2,61 +2,68 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-interface PanelData {
-  title: string;
-  year: string;
-  description: string;
-  tags: string[];
-  link?: string;
+interface PanelItem {
+  n: string;
+  y: string;
+  d: string;
+  t: string[];
+  l?: string;
+  sub?: string;
+  r?: number;
+  s?: string;
 }
 
-const trophies = [
+const feat: PanelItem = {
+  n: "Hackathon 1st",
+  y: "2024",
+  d: "Won first place among 120 teams by shipping a working AI tutor in 36 hours.",
+  t: ["Python", "React", "LLMs"],
+  l: "#",
+};
+
+const star: PanelItem = {
+  n: "Open Source Star",
+  y: "2024",
+  d: "A CLI tool with 2k GitHub stars, used by teams to automate their release process.",
+  t: ["Rust", "CLI"],
+  l: "#",
+};
+
+const ship: PanelItem = {
+  n: "Analytics Dashboard",
+  y: "2026",
+  d: "Real-time product analytics over 1B events, with queries that return in under a second.",
+  t: ["Next.js", "ClickHouse"],
+  l: "#",
+};
+
+const wins: PanelItem[] = [
   {
     n: "Realtime Chat",
     s: "cup",
-    x: -430,
-    z: 150,
     y: "2025",
+    sub: "Product launch",
+    r: 5,
     d: "A chat platform handling 50k concurrent connections with sub-100ms delivery.",
     t: ["TypeScript", "Go", "Redis"],
     l: "#",
   },
   {
-    n: "Hackathon 1st",
-    s: "star",
-    x: -260,
-    z: 30,
-    y: "2024",
-    d: "Won first place among 120 teams by shipping a working AI tutor in 36 hours.",
-    t: ["Python", "React", "LLMs"],
-    l: "#",
-  },
-  {
-    n: "Open Source",
-    s: "obe",
-    x: -95,
-    z: 170,
-    y: "2024",
-    d: "A CLI tool with 2k GitHub stars, used by teams to automate their release process.",
-    t: ["Rust", "CLI"],
-    l: "#",
-  },
-  {
     n: "Payments API",
     s: "orb",
-    x: 95,
-    z: 170,
     y: "2023",
-    d: "A payments service that processes thousands of transactions a day with zero-downtime deploys.",
+    sub: "Fintech sprint",
+    r: 4,
+    d: "A payments service processing thousands of transactions a day with zero-downtime deploys.",
     t: ["Node.js", "PostgreSQL", "Docker"],
     l: "#",
   },
   {
     n: "ML Pipeline",
-    s: "cup",
-    x: 260,
-    z: 30,
+    s: "obe",
     y: "2023",
+    sub: "Data team award",
+    r: 4,
     d: "Cut model training time by 70% with a distributed data pipeline.",
     t: ["Python", "Kubernetes"],
     l: "#",
@@ -64,82 +71,60 @@ const trophies = [
   {
     n: "Design System",
     s: "star",
-    x: 430,
-    z: 150,
     y: "2022",
+    sub: "Internal tools",
+    r: 3,
     d: "A component library used across 8 products, with full keyboard and screen reader support.",
     t: ["React", "Storybook"],
     l: "#",
   },
 ];
 
-const frames = [
+const certs: PanelItem[] = [
   {
     n: "B.Sc. Computer Science",
-    s: "Your University",
-    x: -420,
-    y: -260,
+    y: "2022",
+    sub: "Your University",
+    r: 5,
     d: "Graduated with honors. Focus on distributed systems.",
-    y2: "2022",
+    t: ["Honors"],
   },
   {
     n: "AWS Certified",
-    s: "Solutions Architect",
-    x: -280,
-    y: -230,
+    y: "2023",
+    sub: "Solutions Architect",
+    r: 4,
     d: "Professional-level cloud architecture certification.",
-    y2: "2023",
+    t: ["AWS"],
   },
   {
     n: "Dean's List",
-    s: "6 semesters",
-    x: 260,
-    y: -230,
+    y: "2022",
+    sub: "6 semesters",
+    r: 4,
     d: "Recognized for academic excellence.",
-    y2: "2020–2022",
+    t: ["Academic"],
   },
   {
     n: "Speaker",
-    s: "Local DevConf",
-    x: 400,
-    y: -260,
+    y: "2024",
+    sub: "Local DevConf",
+    r: 3,
     d: "Gave a talk on building reliable systems on a budget.",
-    y2: "2024",
+    t: ["Talk"],
   },
-];
-
-const headlineWords = [
-  "I",
-  "build",
-  "software",
-  "that",
-  "holds",
-  "up",
-  "under",
-  "pressure.",
 ];
 
 export default function Home() {
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelData, setPanelData] = useState<PanelData | null>(null);
+  const [panelData, setPanelData] = useState<PanelItem | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mode, setMode] = useState<"w" | "c">("w");
 
-  const heroRef = useRef<HTMLElement>(null);
-  const edRef = useRef<HTMLDivElement>(null);
-  const codeRef = useRef<HTMLPreElement>(null);
-  const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const deckRef = useRef<HTMLDivElement>(null);
 
-  const awardsSecRef = useRef<HTMLElement>(null);
-  const roomRef = useRef<HTMLDivElement>(null);
-
-  const showPanel = (
-    title: string,
-    year: string,
-    description: string,
-    tags: string[],
-    link?: string
-  ) => {
-    setPanelData({ title, year, description, tags, link });
+  const show = (item: PanelItem) => {
+    setPanelData(item);
     setPanelOpen(true);
   };
 
@@ -147,7 +132,6 @@ export default function Home() {
     setPanelOpen(false);
   };
 
-  // Keyboard Escape listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -159,99 +143,28 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Code editor typewriter effect
-  useEffect(() => {
-    const src =
-      'async function ship(idea) {\n  const plan = think(idea);\n  const build = await code(plan);\n  await test(build);\n  return deploy(build);\n}\n\n> ship("something great")\n✓ 128 tests passed\n✓ deployed in 41s';
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      if (codeRef.current) codeRef.current.textContent = src;
-      return;
-    }
-
-    let n = 0;
-    let timer: NodeJS.Timeout;
-
-    const tick = () => {
-      if (!codeRef.current) return;
-      codeRef.current.textContent = src.slice(0, n++) + "▌";
-      if (n <= src.length) {
-        timer = setTimeout(tick, 30);
-      } else {
-        codeRef.current.textContent = src;
-      }
-    };
-
-    tick();
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Hero pointer interaction (dynamic font-weight & editor 3D rotation)
-  const handleHeroPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    charRefs.current.forEach((c) => {
-      if (!c) return;
-      const b = c.getBoundingClientRect();
-      const d = Math.hypot(
-        e.clientX - (b.left + b.width / 2),
-        e.clientY - (b.top + b.height / 2)
-      );
-      c.style.fontWeight = `${Math.round(300 + 600 * Math.max(0, 1 - d / 220))}`;
-    });
-
-    if (edRef.current) {
-      const a = e.clientX / window.innerWidth - 0.5;
-      const k = e.clientY / window.innerHeight - 0.5;
-      edRef.current.style.setProperty("--ey", `${-8 + a * 14}deg`);
-      edRef.current.style.setProperty("--ex", `${4 - k * 10}deg`);
-    }
-  };
-
-  // 3D Room size adjustment and mouse tracking
-  useEffect(() => {
-    const sec = awardsSecRef.current;
-    const room = roomRef.current;
-    if (!sec || !room) return;
-
-    const fit = () => {
-      room.style.setProperty(
-        "--k",
-        Math.min(1, sec.clientWidth / 1150).toFixed(3)
-      );
-    };
-
-    fit();
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, []);
-
-  const handleAwardsPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    const sec = awardsSecRef.current;
-    const room = roomRef.current;
-    if (!sec || !room) return;
-
-    const r = sec.getBoundingClientRect();
+  const handleDeckPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    const r = deck.getBoundingClientRect();
     const a = (e.clientX - r.left) / r.width - 0.5;
     const b = (e.clientY - r.top) / r.height - 0.5;
-
-    room.style.setProperty("--ry", `${a * 14}deg`);
-    room.style.setProperty("--rx", `${-b * 6}deg`);
+    deck.style.setProperty("--ry", `${-10 + a * 26}deg`);
+    deck.style.setProperty("--rx", `${-b * 10}deg`);
   };
 
-  const handleAwardsPointerLeave = () => {
-    const room = roomRef.current;
-    if (!room) return;
-    room.style.setProperty("--ry", "0deg");
-    room.style.setProperty("--rx", "0deg");
+  const handleDeckPointerLeave = () => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    deck.style.removeProperty("--ry");
+    deck.style.removeProperty("--rx");
   };
 
-  let charIndexCounter = 0;
+  const currentList = mode === "w" ? wins : certs;
 
   return (
     <>
-      {/* SVG Symbols definition */}
+      {/* SVG Definitions */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
           <linearGradient id="g" x1="0" x2="1">
@@ -319,7 +232,7 @@ export default function Home() {
             Sajidul Islam
           </a>
 
-          {/* Desktop links - automatically hidden on mobile */}
+          {/* Desktop links */}
           <div className="desktop-links">
             <a href="#about">About</a>
             <a href="#work">Work</a>
@@ -327,7 +240,7 @@ export default function Home() {
             <a href="#contact">Contact</a>
           </div>
 
-          {/* Mobile Hamburger Button - visible only on mobile breakpoint */}
+          {/* Mobile hamburger button */}
           <button
             type="button"
             className="hamburger-btn"
@@ -364,7 +277,7 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Mobile Dropdown Menu Drawer */}
+        {/* Mobile menu drawer */}
         {menuOpen && (
           <div className="mobile-menu-drawer">
             <a href="#about" onClick={() => setMenuOpen(false)}>
@@ -384,73 +297,18 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <header
-        className="hero"
-        id="top"
-        ref={heroRef}
-        onPointerMove={handleHeroPointerMove}
-      >
+      <header className="hero" id="top">
         <div className="wrap">
-          <div>
-            <h1 id="h1">
-              {headlineWords.map((word, wIdx) => (
-                <span key={wIdx} className="w">
-                  {word.split("").map((char) => {
-                    const idx = charIndexCounter++;
-                    return (
-                      <span
-                        key={idx}
-                        className="c"
-                        ref={(el) => {
-                          charRefs.current[idx] = el;
-                        }}
-                      >
-                        {char}
-                      </span>
-                    );
-                  })}
-                  {wIdx < headlineWords.length - 1 ? "\u00A0" : ""}
-                </span>
-              ))}
-            </h1>
-            {/* Desktop text */}
-            <p className="hidden md:block">
-              Software engineer from Dhaka. I design backends, ship clean
-              interfaces, and care about the details nobody sees until they
-              break.
-            </p>
-            {/* Mobile short text */}
-            <p className="block md:hidden !my-4 !text-[16px] leading-relaxed">
-              Software engineer from Dhaka building scalable backends &amp; clean interfaces.
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <a className="btn f" href="#work">
-                <span className="hidden sm:inline">See my work</span>
-                <span className="inline sm:hidden">See work</span>
-              </a>
-              <a className="btn" href="#contact">
-                <span className="hidden sm:inline">Get in touch</span>
-                <span className="inline sm:hidden">Contact</span>
-              </a>
-            </div>
-          </div>
-
-          <div className="ed" id="ed" ref={edRef}>
-            <div className="dots">
-              <i />
-              <i />
-              <i />
-              <span>ship.ts</span>
-            </div>
-            <pre id="code" ref={codeRef}></pre>
-          </div>
-        </div>
-
-        <div className="tick" aria-hidden="true">
-          <div>
-            TypeScript ✦ Go ✦ Rust ✦ PostgreSQL ✦ Docker ✦ React ✦ AWS ✦
-            Kubernetes ✦ TypeScript ✦ Go ✦ Rust ✦ PostgreSQL ✦ Docker ✦ React ✦
-            AWS ✦ Kubernetes ✦{" "}
+          <div className="eyebrow">Software Engineer · Dhaka</div>
+          <h1>I build software that holds up under pressure.</h1>
+          <p>Backends, clean interfaces, and the details nobody sees until they break.</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <a className="btn f" href="#work">
+              See my work
+            </a>
+            <a className="btn" href="#contact">
+              Get in touch
+            </a>
           </div>
         </div>
       </header>
@@ -462,14 +320,14 @@ export default function Home() {
           <div className="about">
             <div>
               <p>
-                I&apos;m a software engineer who likes turning messy problems
-                into small, fast, reliable systems. Replace this text with your
-                own story: where you studied, what you&apos;ve shipped, and what
-                you want to build next.
+                I&apos;m a software engineer who likes turning messy problems into
+                small, fast, reliable systems. Replace this text with your own story:
+                where you studied, what you&apos;ve shipped, and what you want to
+                build next.
               </p>
               <p>
-                Outside of work I contribute to open source and mentor students
-                who are just starting out.
+                Outside of work I contribute to open source and mentor students who
+                are just starting out.
               </p>
             </div>
             <div className="sk">
@@ -511,84 +369,158 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Awards 3D Interactive Room */}
-      <section
-        className="awards"
-        id="awards"
-        aria-label="Awards"
-        ref={awardsSecRef}
-        onPointerMove={handleAwardsPointerMove}
-        onPointerLeave={handleAwardsPointerLeave}
-      >
-        <div className="head">
-          <div className="wrap">
-            <h2 className="sec">Awards and wins</h2>
-            <p>The things on my desk I&apos;m proudest of.</p>
-          </div>
-        </div>
+      {/* Awards Shelf Section (Skeuomorphic 3D Bookshelf & Trophy Room) */}
+      <section className="awards" id="awards" aria-label="Awards">
+        <div
+          className="deck"
+          id="deck"
+          ref={deckRef}
+          onPointerMove={handleDeckPointerMove}
+          onPointerLeave={handleDeckPointerLeave}
+        >
+          <div className="top">
+            <i className="shelf" />
 
-        <div className="room" id="room" ref={roomRef}>
-          <div className="wall" />
-          <div className="desk" />
-
-          {/* Monitor */}
-          <div className="mon">
-            <i>const</i> me = &#123;
-            <br />
-            &nbsp;&nbsp;role: <i>&quot;engineer&quot;</i>,
-            <br />
-            &nbsp;&nbsp;builds: <i>&quot;fast things&quot;</i>,
-            <br />
-            &nbsp;&nbsp;coffee: <i>Infinity</i>
-            <br />
-            &#125;;
-            <br />
-            <b />
-          </div>
-
-          {/* Wall Frames */}
-          {frames.map((frame, idx) => (
-            <div
-              key={idx}
-              className="frame"
-              style={{
-                transform: `translate3d(${frame.x}px, ${frame.y}px, -490px)`,
-              }}
-              onClick={() =>
-                showPanel(frame.n, frame.y2, frame.d, [frame.s])
-              }
-            >
-              {frame.n}
-              <small>{frame.s}</small>
+            {/* Top Toolbar */}
+            <div className="bar2">
+              <span className="lg">TROPHY ROOM</span>
+              <div className="tabs">
+                <button
+                  type="button"
+                  className={mode === "w" ? "on" : ""}
+                  onClick={() => setMode("w")}
+                >
+                  Trophies
+                </button>
+                <button
+                  type="button"
+                  className={mode === "c" ? "on" : ""}
+                  onClick={() => setMode("c")}
+                >
+                  Certificates
+                </button>
+              </div>
+              <span className="cnt">6 wins · 4 certificates</span>
             </div>
-          ))}
 
-          {/* Desk Trophies */}
-          {trophies.map((t, idx) => (
+            {/* Intro Header */}
+            <div className="intro">
+              <h2>
+                Awards
+                <br />
+                &amp; Wins
+              </h2>
+              <p>Things I&apos;ve built that earned a spot on the shelf.</p>
+              <div className="pill">✦ Click anything for the story</div>
+            </div>
+
+            {/* Featured Trophy on Shelf */}
             <button
-              key={idx}
-              className="t"
-              style={
-                {
-                  "--x": `${t.x}px`,
-                  "--z": `${t.z}px`,
-                } as React.CSSProperties
-              }
-              aria-label={t.n}
-              onClick={() => showPanel(t.n, t.y, t.d, t.t, t.l)}
+              type="button"
+              className="feat"
+              id="feat"
+              aria-label="Hackathon 1st"
+              onClick={() => show(feat)}
             >
-              <div className="in">
+              <span className="badge">#1 · Hackathon winner</span>
+              <div className="tilt">
                 <svg viewBox="0 0 100 140">
-                  <use href={`#${t.s}`} />
+                  <use href="#cup" />
                 </svg>
-                <span className="plq">{t.n}</span>
               </div>
             </button>
-          ))}
-        </div>
 
-        <div className="tip">
-          Move your mouse to look around. Click a trophy for the story.
+            {/* Side Cards on Shelf */}
+            <div className="side">
+              <div className="vl">Latest win</div>
+              <button
+                type="button"
+                className="card a"
+                id="ca"
+                onClick={() => show(star)}
+              >
+                <b>Open Source Star</b>
+                <small>2k GitHub stars</small>
+                <svg viewBox="0 0 100 140">
+                  <use href="#star" />
+                </svg>
+              </button>
+
+              <div className="vl">Last shipped</div>
+              <button
+                type="button"
+                className="card b"
+                id="cb"
+                onClick={() => show(ship)}
+              >
+                <b>Analytics Dashboard</b>
+                <small>Next.js · ClickHouse</small>
+                <div className="disc">✦</div>
+                <div className="playback-bar" />
+                <span className="go2">↗</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Lower Shelf and Items */}
+          <div className="low" id="low">
+            <div className="vl">
+              {mode === "w" ? "Recent wins" : "Certificates"}
+            </div>
+            <div className="lowin">
+              <div className="rack">
+                <i className="shelf" />
+                {currentList.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="mini"
+                    aria-label={item.n}
+                    onClick={() => show(item)}
+                  >
+                    {mode === "w" ? (
+                      <svg viewBox="0 0 100 140">
+                        <use href={`#${item.s}`} />
+                      </svg>
+                    ) : (
+                      <div
+                        className="cf"
+                        style={
+                          {
+                            "--r": `${idx % 2 ? 2 : -2}deg`,
+                          } as React.CSSProperties
+                        }
+                      >
+                        {item.n}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="info">
+                {currentList.map((item, idx) => (
+                  <div key={idx} className="inf">
+                    <div className="st" aria-hidden="true">
+                      {"★".repeat(item.r || 5)}
+                      {"☆".repeat(5 - (item.r || 5))}
+                    </div>
+                    <b>{item.n}</b>
+                    <small>
+                      {item.sub} · {item.y}
+                    </small>
+                    <button
+                      type="button"
+                      className="ob"
+                      onClick={() => show(item)}
+                    >
+                      View story
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -600,41 +532,48 @@ export default function Home() {
             you@example.com
           </a>
           <p>Open to full-time roles and interesting side projects.</p>
-          <a className="btn" href="#">
-            GitHub
-          </a>
-          <a className="btn" href="#">
-            LinkedIn
-          </a>
+          <div className="flex flex-wrap gap-3">
+            <a className="btn" href="#">
+              GitHub
+            </a>
+            <a className="btn" href="#">
+              LinkedIn
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer>
-        <div className="wrap">© 2026 Your Name</div>
+        <div className="wrap">© 2026 Sajidul Islam</div>
       </footer>
 
-      {/* Drawer Panel */}
+      {/* Slide-over Detail Drawer Panel */}
       <aside
         className={`panel ${panelOpen ? "open" : ""}`}
         id="panel"
         aria-live="polite"
       >
-        <button className="x" aria-label="Close" onClick={closePanel}>
+        <button
+          type="button"
+          className="x"
+          aria-label="Close"
+          onClick={closePanel}
+        >
           ×
         </button>
         {panelData && (
           <div id="pc">
-            <h3>{panelData.title}</h3>
-            <div className="yr">{panelData.year}</div>
-            <p>{panelData.description}</p>
+            <h3>{panelData.n}</h3>
+            <div className="yr">{panelData.y}</div>
+            <p>{panelData.d}</p>
             <div className="tags">
-              {panelData.tags.map((tag, i) => (
+              {panelData.t.map((tag, i) => (
                 <span key={i}>{tag}</span>
               ))}
             </div>
-            {panelData.link && (
-              <a className="go" href={panelData.link}>
+            {panelData.l && (
+              <a className="go" href={panelData.l}>
                 View project
               </a>
             )}
