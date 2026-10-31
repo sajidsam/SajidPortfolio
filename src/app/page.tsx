@@ -267,7 +267,7 @@ export default function Home() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/hero-room.png"
-            width={1484}
+            width={1384}
             height={1060}
             alt="A modern home office where a developer works on a laptop, with a wall-mounted TV"
           />

@@ -288,11 +288,11 @@ h2.sec {
 }
 
 .hscene {
-  --sw: max(100cqw, calc(100cqh * 1.4003));
-  --sh: calc(var(--sw) * 0.71429);
+  --sw: max(100cqw, calc(100cqh * 1.3057));
+  --sh: calc(var(--sw) * 0.7659);
   position: absolute;
   width: var(--sw);
-  left: clamp(calc(100cqw - var(--sw)), calc(50cqw - var(--sw) * 0.6475), 0px);
+  left: clamp(calc(100cqw - var(--sw)), calc(50cqw - var(--sw) * 0.62), 0px);
   top: calc((100cqh - var(--sh)) / 2);
   container-type: inline-size;
 }
@@ -348,11 +348,11 @@ h2.sec {
 
 .tv {
   position: absolute;
-  left: 54.4%;
-  top: 33.4%;
-  width: 20.7%;
-  height: 16.2%;
-  background: #050403;
+  left: 51.15%;
+  top: 33.58%;
+  width: 22.0%;
+  height: 16.0%;
+  background: radial-gradient(120% 100% at 50% 10%, #171310 0%, #0c0908 60%, #060505 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -361,15 +361,69 @@ h2.sec {
   font-family: ui-monospace, Menlo, monospace;
   color: var(--paper);
   overflow: hidden;
-  box-shadow: 0 0 5cqw 1.2cqw #f3ece344, inset 0 0 1.5cqw #000;
-  transition: box-shadow 1.4s;
+  border-radius: clamp(2px, 0.25cqw, 4px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.28),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+    inset 0 0 1.2cqw rgba(0, 0, 0, 0.9),
+    0 0 3cqw 0.8cqw rgba(243, 236, 227, 0.25);
+  transition: box-shadow 1.4s ease, border-color 1.4s ease;
+}
+
+/* Realistic ambient light shade & specular glass glare on TV screen */
+.tv::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    /* Realistic angled window/lamp glass sheen */
+    linear-gradient(130deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 250, 240, 0.08) 22%, rgba(255, 255, 255, 0.015) 44%, transparent 58%),
+    /* Natural downward ambient ceiling light gradient on TV glass */
+    linear-gradient(180deg, rgba(255, 248, 235, 0.18) 0%, rgba(255, 240, 220, 0.06) 18%, rgba(255, 240, 220, 0.015) 38%, transparent 55%),
+    /* Subtle bottom bounce edge light */
+    linear-gradient(0deg, rgba(255, 240, 220, 0.06) 0%, transparent 12%);
+  transition: background 1.4s ease;
+}
+
+.hero.on .tv::before {
+  background:
+    linear-gradient(130deg, rgba(255, 240, 215, 0.32) 0%, rgba(255, 235, 205, 0.14) 24%, rgba(255, 255, 255, 0.02) 46%, transparent 62%),
+    linear-gradient(180deg, rgba(255, 230, 195, 0.24) 0%, rgba(255, 230, 195, 0.08) 20%, transparent 45%),
+    linear-gradient(0deg, rgba(255, 240, 215, 0.08) 0%, transparent 14%);
+}
+
+/* Subtle CRT phosphor / glass scanline effect */
+.tv::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 3px
+  );
+  opacity: 0.65;
 }
 
 .hero.on .tv {
-  box-shadow: 0 0 2cqw #f3ece322, inset 0 0 1.5cqw #000;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.25),
+    inset 0 0 1cqw rgba(0, 0, 0, 0.75),
+    0 0 2cqw rgba(255, 217, 160, 0.22);
 }
 
 .tt {
+  position: relative;
+  z-index: 3;
   font-size: 0.78cqw;
   color: var(--tan);
   margin-bottom: 0.2cqw;
@@ -386,6 +440,8 @@ h2.sec {
 }
 
 .g {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
